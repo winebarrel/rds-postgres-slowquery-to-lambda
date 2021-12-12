@@ -27,7 +27,7 @@ curl -XPUT -H 'Content-Type: application/json' $ELASTICSEARCH_URL/_template/slow
           "mapping": {
             "type": "date"
           },
-          "match": "timestamp"
+          "match": "@timestamp"
         }
       }
     ]

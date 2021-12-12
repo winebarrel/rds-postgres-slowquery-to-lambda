@@ -80,14 +80,14 @@ func HandleRequest(ctx context.Context, event Event) (string, error) {
 	}
 
 	if len(logs) > 0 {
+		// dd := newDatadog()
+		// err = dd.sendLogs(ctx, msg, logs)
+
+		// if err != nil {
+		// 	return err.Error(), err
+		// }
+
 		opnsrch, err := newOpenSearch()
-
-		if err != nil {
-			return err.Error(), err
-		}
-
-		dd := newDatadog()
-		err = dd.sendLogs(ctx, msg, logs)
 
 		if err != nil {
 			return err.Error(), err

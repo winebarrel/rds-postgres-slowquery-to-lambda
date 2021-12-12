@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
+	"time"
 
 	opensearch "github.com/opensearch-project/opensearch-go"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
@@ -16,12 +18,18 @@ type OpenSearch struct {
 	Client *opensearch.Client
 }
 
+type Doc struct {
+	Fingerprint string  `json:"fingerprint"`
+	Duration    float64 `json:"duration"`
+	Timestamp   string  `json:"@timestamp"`
+}
+
 func newOpenSearch() (*OpenSearch, error) {
 	client, err := opensearch.NewClient(opensearch.Config{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
-		Addresses: []string{"https://" + os.Getenv("OPENSEARCH_ENDPOINT")},
+		Addresses: []string{fmt.Sprintf("https://%s:443", os.Getenv("OPENSEARCH_ENDPOINT"))},
 	})
 
 	if err != nil {
@@ -34,24 +42,32 @@ func newOpenSearch() (*OpenSearch, error) {
 }
 
 func (opnsrch *OpenSearch) postLogs(ctx context.Context, msg *Message, logs []*SqlLog) error {
-	document := strings.NewReader(`{
-		"title": "Moneyball",
-		"director": "Bennett Miller",
-		"year": "2011"
-}`)
+	for _, log := range logs {
+		doc := &Doc{
+			Fingerprint: log.Fingerprint,
+			Duration:    log.Duration,
+			Timestamp:   time.Now().Format(time.RFC3339),
+		}
 
-	req := opensearchapi.IndexRequest{
-		Index: "test",
-		Body:  document,
+		rawJson, err := json.Marshal(doc)
+
+		if err != nil {
+			return err
+		}
+
+		req := opensearchapi.IndexRequest{
+			Index: "slowquery",
+			Body:  bytes.NewBuffer(rawJson),
+		}
+
+		res, err := req.Do(ctx, opnsrch.Client)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%+v\n", res)
 	}
-
-	res, err := req.Do(ctx, opnsrch.Client)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%+v\n", res)
 
 	return nil
 }
