@@ -15,6 +15,13 @@ resource "aws_lambda_function" "postgresql_slowquery" {
   role          = data.aws_iam_role.postgresql_slowquery.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.postgresql_slowquery.repository_url}:latest"
+
+  environment {
+    variables = {
+      DD_API_KEY = var.dd_api_key
+      DD_APP_KEY = var.dd_app_key
+    }
+  }
 }
 
 resource "aws_lambda_permission" "invoke_lambda" {
