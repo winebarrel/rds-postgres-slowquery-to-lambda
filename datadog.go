@@ -74,7 +74,6 @@ func (dd *Datadog) sendLogs(ctx context.Context, msg *Message, logs []*SqlLog) e
 		}
 
 		jsonStr := string(rawJson)
-		fmt.Println(jsonStr)
 
 		item := datadog.HTTPLogItem{
 			Ddsource: &dd.Source,

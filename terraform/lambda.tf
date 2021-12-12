@@ -18,8 +18,9 @@ resource "aws_lambda_function" "postgresql_slowquery" {
 
   environment {
     variables = {
-      DD_API_KEY = var.dd_api_key
-      DD_APP_KEY = var.dd_app_key
+      DD_API_KEY          = var.dd_api_key
+      DD_APP_KEY          = var.dd_app_key
+      OPENSEARCH_ENDPOINT = aws_elasticsearch_domain.slowquery.endpoint
     }
   }
 }
